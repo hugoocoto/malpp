@@ -1,0 +1,6 @@
+/build/
+/malpp
+/src/lex.c
+/src/lex.h
+/src/parse.c
+/src/parse.h

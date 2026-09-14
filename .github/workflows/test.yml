@@ -1,0 +1,31 @@
+name: Test
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install flex and bison (needed to build malpp)
+        run: sudo apt-get update && sudo apt-get install -y flex bison
+
+      - name: Install MPI (Open MPI 5.x, needed for MPI Sessions)
+        uses: mamba-org/setup-micromamba@v3
+        with:
+          environment-name: ci
+          create-args: openmpi>=5 compilers
+          init-shell: bash
+
+      - name: Run tests
+        shell: micromamba-shell {0}
+        # GitHub-hosted runners expose a non-functional RDMA NIC (Azure "mana"); UCX tries
+        # it and prints a harmless error that pollutes the test output. Force plain
+        # TCP/shared-memory transports to avoid the probe entirely.
+        env:
+          OMPI_MCA_pml: ob1
+          OMPI_MCA_btl: self,tcp,vader
+        run: make test
